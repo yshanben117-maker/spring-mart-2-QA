@@ -45,7 +45,8 @@ public class ProductService {
         // 在庫テーブルに初期在庫数を登録
         Inventory inventory = new Inventory();
         inventory.setProduct(product);
-        inventory.setStockQuantity(request.getInitialStock());
+        int initialStock = request.getInitialStock() != null ? request.getInitialStock() : 0;
+        inventory.setStockQuantity(initialStock);
         inventoryRepository.save(inventory);
 
         return new ProductResponse(product.getId(), product.getName(), product.getDescription(), product.getPrice());

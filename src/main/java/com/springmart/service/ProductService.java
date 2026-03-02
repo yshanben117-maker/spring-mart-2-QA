@@ -8,6 +8,8 @@ import com.springmart.repository.InventoryRepository;
 import com.springmart.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -52,12 +54,32 @@ public class ProductService {
         return new ProductResponse(product.getId(), product.getName(), product.getDescription(), product.getPrice());
     }
 
+    @Transactional
     public ProductResponse updateProduct(Long id, ProductRequest request) {
-        throw new UnsupportedOperationException("商品更新機能はまだ実装されていません");
+        // ①対象の商品をDBから探す。なければエラーメッセージを出す。
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("商品が見つかりません:" + id));
+
+        // ②リクエストの内容で商品情報を上書きする
+        product.setName(request.getName());
+        product.setDescription(request.getDescription());
+        product.setPrice(request.getPrice());
+
+        // ③更新した商品をDBに保存する
+        product = productRepository.save(product);
+
+        // ④更新後の商品情報を返す
+        return new ProductResponse(product.getId(), product.getName(), product.getDescription(), product.getPrice());
     }
 
+    @Transactional
     public void deleteProduct(Long id) {
-        throw new UnsupportedOperationException("商品削除機能はまだ実装されていません");
+        // ①対象の商品を探す
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("商品が見つかりません: " + id));
+
+        // ②DBから削除する
+        productRepository.delete(product);
     }
 }
 

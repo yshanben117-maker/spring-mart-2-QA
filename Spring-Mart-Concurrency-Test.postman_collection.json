@@ -1,0 +1,43 @@
+{
+    "info": {
+        "name": "Spring-Mart Concurrency Test (同時アクセス検証)",
+        "description": "注文APIに対して同時アクセスを発生させ、排他制御（在庫の重複割り当て防止機能など）が正しく動作するか検証するためのコレクションです。",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "1. 商品注文 (POST /api/orders)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\r\n    \"items\": [\r\n        {\r\n            \"productId\": 1,\r\n            \"quantity\": 1\r\n        }\r\n    ]\r\n}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "http://localhost:8080/api/orders",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "8080",
+                    "path": [
+                        "api",
+                        "orders"
+                    ]
+                }
+            },
+            "response": []
+        }
+    ]
+}

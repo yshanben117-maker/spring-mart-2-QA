@@ -11,5 +11,7 @@ public class OrderRequest {
     @Valid
     @NotEmpty(message = "注文商品リストは必須です")
     private List<OrderItemRequest> items;
+
+    public void setItems(List<OrderItemRequest> items) { this.items = items; }
 }
 

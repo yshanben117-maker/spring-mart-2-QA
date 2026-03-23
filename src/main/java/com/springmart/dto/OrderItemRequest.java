@@ -12,5 +12,8 @@ public class OrderItemRequest {
     @NotNull(message = "数量は必須です")
     @Min(value = 1, message = "数量は1以上である必要があります")
     private Integer quantity;
+
+    public void setProductId(Long productId) { this.productId = productId; }
+    public void setQuantity(Integer quantity) { this.quantity = quantity; }
 }
 

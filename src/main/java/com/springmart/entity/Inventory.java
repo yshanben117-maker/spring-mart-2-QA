@@ -34,5 +34,9 @@ public class Inventory {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    public void setProduct(Product product) { this.product = product; }
+    public Integer getStockQuantity() { return stockQuantity; }
+    public void setStockQuantity(Integer stockQuantity) { this.stockQuantity = stockQuantity; }
 }
 

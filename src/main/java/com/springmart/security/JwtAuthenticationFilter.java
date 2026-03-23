@@ -18,31 +18,40 @@ import java.util.Collections;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     
     private final JwtTokenProvider jwtTokenProvider;
+    private final org.springframework.web.servlet.HandlerExceptionResolver resolver;
     
-    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider) {
+    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, 
+                                   @org.springframework.beans.factory.annotation.Qualifier("handlerExceptionResolver") 
+                                   org.springframework.web.servlet.HandlerExceptionResolver resolver) {
         this.jwtTokenProvider = jwtTokenProvider;
+        this.resolver = resolver;
     }
     
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         
-        String token = getTokenFromRequest(request);
-        
-        if (token != null && jwtTokenProvider.validateToken(token)) {
-            String username = jwtTokenProvider.getUsernameFromToken(token);
-            String role = jwtTokenProvider.getRoleFromToken(token);
+        try {
+            String token = getTokenFromRequest(request);
             
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    username,
-                    null,
-                    Collections.singletonList(new SimpleGrantedAuthority(role))
-            );
-            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            if (token != null && jwtTokenProvider.validateToken(token)) {
+                String username = jwtTokenProvider.getUsernameFromToken(token);
+                String role = jwtTokenProvider.getRoleFromToken(token);
+                
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        username,
+                        null,
+                        Collections.singletonList(new SimpleGrantedAuthority(role))
+                );
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+            
+            filterChain.doFilter(request, response);
+        } catch (Exception e) {
+            // 例外が発生した場合はGlobalExceptionHandlerに処理を委譲する
+            resolver.resolveException(request, response, null, e);
         }
-        
-        filterChain.doFilter(request, response);
     }
     
     private String getTokenFromRequest(HttpServletRequest request) {

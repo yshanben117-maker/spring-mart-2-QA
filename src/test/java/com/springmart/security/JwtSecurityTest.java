@@ -85,6 +85,18 @@ public class JwtSecurityTest {
                 .andExpect(status().isOk());
     }
 
+    @Test
+    void testRoleBasedAccessRestriction_UserAccessingAdminEndpoint() throws Exception {
+        String newProductJson = "{\"name\":\"Sample Product\",\"price\":1000,\"stockQuantity\":10,\"description\":\"Test\"}";
+
+        // Normal user trying to access POST /api/products (Requires ROLE_ADMIN) -> Expected 403 Forbidden
+        mockMvc.perform(post("/api/products")
+                .header("Authorization", "Bearer " + validUserToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(newProductJson))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error").value("権限エラー"));
+    }
 
     @Test
     void testInvalidTokenErrorHandling() throws Exception {

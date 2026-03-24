@@ -48,12 +48,34 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .exceptionHandling(exceptions -> exceptions
+                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    response.setStatus(403);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write("{\"error\":\"権限エラー\",\"message\":\"この操作を行う権限がありません。\"}");
+                })
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(401);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write("{\"error\":\"認証エラー\",\"message\":\"認証が必要です。\"}");
+                })
+            )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/health").permitAll()
                 .requestMatchers("/auth/login").permitAll()
                 .requestMatchers("/dev/**").permitAll()
+                // 商品管理：登録・更新・削除は管理者の権限(ROLE_ADMIN)が必要
+                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/products/**").hasRole("ADMIN")
+                .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/products/**").hasRole("ADMIN")
+                .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/products/**").hasRole("ADMIN")
+                // 商品管理：閲覧はログインユーザー全員が可能
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/products/**").authenticated()
+                // 注文管理：ログインユーザー(JWTトークン保持者)のみ可能
+                .requestMatchers("/api/orders/**").authenticated()
                 .anyRequest().permitAll()
-            );
+            )
+            // 入場ゲートの入り口に案内係(JWTフィルター)を立たせる
+            .addFilterBefore(jwtAuthenticationFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
         
         return http.build();
     }

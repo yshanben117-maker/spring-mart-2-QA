@@ -48,12 +48,21 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .exceptionHandling(exceptions -> exceptions
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(401);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write("{\"error\":\"認証エラー\",\"message\":\"認証が必要です。\"}");
+                })
+            )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/health").permitAll()
                 .requestMatchers("/auth/login").permitAll()
                 .requestMatchers("/dev/**").permitAll()
                 .anyRequest().permitAll()
-            );
+            )
+            // 入場ゲートの入り口に案内係(JWTフィルター)を立たせる
+            .addFilterBefore(jwtAuthenticationFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
         
         return http.build();
     }

@@ -63,8 +63,10 @@ public class JwtTokenProvider {
                     .build()
                     .parseSignedClaims(token);
             return true;
-        } catch (Exception e) {
-            return false;
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            throw new com.springmart.exception.ExpiredTokenException("有効期限が切れています。再度ログインしてください。");
+        } catch (io.jsonwebtoken.JwtException | IllegalArgumentException e) {
+            throw new com.springmart.exception.InvalidTokenException("無効なトークンです。再度ログインしてください。");
         }
     }
 }
